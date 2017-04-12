@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<title> Get data from JSON</title>
+</head>
+<body>
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script type="text/javascript">
+
+class category {
+	constructor(name) {
+		this.name = name;
+		this.weights = [];
+		this.sizes = [];
+		this.types = [];
+	}
+}
+
+$.getJSON("data.json", function(data) {
+
+	var categories = [];
+	var allThings = 0;
+
+  	for (var i = 0; i < data.length; i++) {
+    	var cats = data[i].category;
+    	allThings += cats.length;
+
+    	for(var j = 0; j < cats.length; j++) {
+    		var cat = cats[j];
+
+    		var catIndex, newCat;
+    		if (categories.some(function (item, index){ catIndex = index; return item.name === cat;}))
+    			newCat = categories[catIndex];
+    		else {	
+    			newCat = new category(cat);
+    			catIndex = -1;
+    		}	
+    		
+    		if ("weight" in data[i])
+	    		newCat.weights.push(data[i].weight);
+    		if ("size" in data[i])
+	    		newCat.sizes.push(data[i].size);
+    		if ("type" in data[i])
+	    		newCat.types.push(data[i].type);
+    		
+    		if (catIndex === -1)
+	    		categories.push(newCat);
+    	}
+
+  	}	
+
+  categories = categories.sort(function(item1, item2) {return item1.name > item2.name});
+	console.log(categories);
+	console.log(allThings);
+
+});
+
+
+
+
+  var myTable= "<table><tr><td style='width: 100px; color: red;'>Категория</td>";
+  myTable+= "<td style='width: 100px; color: red; text-align: right;'>Процент предметов попадающих в категорию от общего количества</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: right;'>Преобладающий тип для данной категории</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: right;'>Средний вес и размер предметов в данной категории</td></tr>";
+
+
+  myTable+="<tr><td style='width: 100px;                   '>---------------</td>";
+  myTable+="<td     style='width: 100px; text-align: right;'>---------------</td>";
+  myTable+="<td     style='width: 100px; text-align: right;'>---------------</td></tr>";
+
+  /*
+  for (var i = 0; i < categories.length; i++) {
+  	var cat = categories[i];
+
+    myTable+="<tr><td style='width: 100px;'>" + cat.name + "</td>";
+    //var percent = cat.types / allThings * 100;
+    //console.log(percent);
+    myTable+="<td style='width: 100px; text-align: right;'>" + 10 + "</td>";
+    myTable+="<td style='width: 100px; text-align: right;'>" + 0 + "</td>";
+    myTable+="<td style='width: 100px; text-align: right;'>" + 0 + "</td></tr>";
+  }  
+  */
+
+  myTable+="</table>";
+
+  document.write( myTable);
+
+
+</script>
+</body>
+</html>
