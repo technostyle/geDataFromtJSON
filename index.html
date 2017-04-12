@@ -6,6 +6,8 @@
 </head>
 <body>
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="data.js">
+</script>
 <script type="text/javascript">
 
 class category {
@@ -14,78 +16,127 @@ class category {
 		this.weights = [];
 		this.sizes = [];
 		this.types = [];
+		this.ammount = 0;
 	}
 }
 
-$.getJSON("data.json", function(data) {
+// JSON_DATA - Global object;
 
-	var categories = [];
-	var allThings = 0;
+var categories = [];
+var allThings = JSON_DATA.length;
+var allThingsWithoutCategories = 0;
+var allThingsWithoutWeightOrSize = 0;
 
-  	for (var i = 0; i < data.length; i++) {
-    	var cats = data[i].category;
-    	allThings += cats.length;
+(function readData(data) {
+	
+	for (var i = 0; i < data.length; i++) {
 
-    	for(var j = 0; j < cats.length; j++) {
-    		var cat = cats[j];
+		if ("category" in data[i] === false || data[i].category.length === 0 ) {
+			allThingsWithoutCategories++;
+			continue;
+		}
 
-    		var catIndex, newCat;
-    		if (categories.some(function (item, index){ catIndex = index; return item.name === cat;}))
-    			newCat = categories[catIndex];
-    		else {	
-    			newCat = new category(cat);
-    			catIndex = -1;
-    		}	
-    		
-    		if ("weight" in data[i])
-	    		newCat.weights.push(data[i].weight);
-    		if ("size" in data[i])
-	    		newCat.sizes.push(data[i].size);
-    		if ("type" in data[i])
-	    		newCat.types.push(data[i].type);
-    		
-    		if (catIndex === -1)
-	    		categories.push(newCat);
-    	}
+		var cats = data[i].category;
 
-  	}	
+		for(var j = 0; j < cats.length; j++) {
+			var cat = cats[j];
 
-  categories = categories.sort(function(item1, item2) {return item1.name > item2.name});
+			var catIndex, newCat;
+			if (categories.some(function (item, index){ catIndex = index; return item.name === cat;}))
+				newCat = categories[catIndex];
+			else {	
+				newCat = new category(cat);
+				catIndex = -1;
+			}	
+			
+			if ("weight" in data[i])
+	  		newCat.weights.push(data[i].weight);
+			if ("size" in data[i])
+	  		newCat.sizes.push(data[i].size);
+			if ("type" in data[i])
+	  		newCat.types.push(data[i].type);
+	  	if ("size" in data[i] === false || "weight" in data[i] === false)
+	  		allThingsWithoutWeightOrSize++;
+
+			newCat.ammount++;
+
+			if (catIndex === -1)
+	  		categories.push(newCat);
+		}
+
+	}	
+
+	categories = categories.sort(function(item1, item2) {return item1.name > item2.name});
 	console.log(categories);
-	console.log(allThings);
 
-});
-
+}(JSON_DATA));
 
 
+(function drawTable() {
 
-  var myTable= "<table><tr><td style='width: 100px; color: red;'>Категория</td>";
-  myTable+= "<td style='width: 100px; color: red; text-align: right;'>Процент предметов попадающих в категорию от общего количества</td>";
-  myTable+="<td style='width: 100px; color: red; text-align: right;'>Преобладающий тип для данной категории</td>";
-  myTable+="<td style='width: 100px; color: red; text-align: right;'>Средний вес и размер предметов в данной категории</td></tr>";
+  var myTable= "<table><tr><td style='width: 100px; color: red; text-align: center;'>Категория</td>";
+  myTable+= "<td style='width: 100px; color: red; text-align: center;'>Процент предметов попадающих в категорию от общего количества</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Преобладающий тип для данной категории</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Средний вес и размер предметов в данной категории</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Процент предметов без веса или размера от общего количества данного типа</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Процент предметов у которых отсутствуют категрии от общего количества данного типа</td></tr>";
 
 
-  myTable+="<tr><td style='width: 100px;                   '>---------------</td>";
-  myTable+="<td     style='width: 100px; text-align: right;'>---------------</td>";
-  myTable+="<td     style='width: 100px; text-align: right;'>---------------</td></tr>";
+  myTable+="<tr><td style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td></tr>";
 
-  /*
   for (var i = 0; i < categories.length; i++) {
   	var cat = categories[i];
 
-    myTable+="<tr><td style='width: 100px;'>" + cat.name + "</td>";
-    //var percent = cat.types / allThings * 100;
-    //console.log(percent);
-    myTable+="<td style='width: 100px; text-align: right;'>" + 10 + "</td>";
-    myTable+="<td style='width: 100px; text-align: right;'>" + 0 + "</td>";
-    myTable+="<td style='width: 100px; text-align: right;'>" + 0 + "</td></tr>";
+  	// Категория
+    myTable+="<tr><td style='text-align: center;'>" + cat.name + "</td>";
+
+  	// Процент предметов попадающих в категорию от общего количества
+    var percent = cat.types.length / allThings * 100;
+    myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td>";
+
+    // Преобладающий тип для данной категории
+    var allTypes = cat.types.reduce(function(container, value){ 
+    	if (container[value] === undefined)
+    		container[value] = 1;
+    	else
+    		container[value]++;
+    	return container; 
+    }, {});
+
+    var dominantType = Object.keys(allTypes).reduce(function(maxValue, curTypeKey){
+    	return (allTypes[curTypeKey] > maxValue) ? allTypes[curTypeKey] : maxValue;
+    }, 0);
+
+    myTable+="<td style='width: 100px; text-align: center;'>" + dominantType + "</td>";
+
+    // Средний вес и размер предметов в данной категории
+    var averageWeight = (cat.weights.length === 0 ) ? "No data" : 
+    cat.weights.reduce(function(sum, value){return sum + value;}) / cat.weights.length;
+
+    var averageSize = (cat.sizes.length === 0 ) ? "No data" : 
+    cat.sizes.reduce(function(sum, value){return sum + value;}) / cat.sizes.length;
+    
+    myTable+="<td style='width: 100px; text-align: center;'>" + averageWeight.toFixed(3) +", " + averageSize.toFixed(3) + "</td>";
+
+    //Процент предметов без веса или размера от общего количества данного типа
+    var percent = allThingsWithoutWeightOrSize / cat.ammount;
+    myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td>";
+
+    //Процент предметов у которых отсутствуют категрии от общего количества данного типа
+    var percent = allThingsWithoutCategories / cat.ammount;
+    myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td></tr>";
   }  
-  */
 
   myTable+="</table>";
 
   document.write( myTable);
 
+}());
 
 </script>
 </body>
