@@ -16,7 +16,6 @@ class category {
 		this.weights = [];
 		this.sizes = [];
 		this.types = [];
-		this.ammount = 0;
 	}
 }
 
@@ -26,10 +25,21 @@ var categories = [];
 var allThings = JSON_DATA.length;
 var allThingsWithoutCategories = 0;
 var allThingsWithoutWeightOrSize = 0;
+var types = {};
+
+console.log(JSON_DATA);
 
 (function readData(data) {
-	
+
 	for (var i = 0; i < data.length; i++) {
+
+		if (data[i].type in types)
+			types[data[i].type]++;
+		else
+			types[data[i].type] = 1;
+
+  	if ("size" in data[i] === false || "weight" in data[i] === false)
+  		allThingsWithoutWeightOrSize++;
 
 		if ("category" in data[i] === false || data[i].category.length === 0 ) {
 			allThingsWithoutCategories++;
@@ -55,15 +65,10 @@ var allThingsWithoutWeightOrSize = 0;
 	  		newCat.sizes.push(data[i].size);
 			if ("type" in data[i])
 	  		newCat.types.push(data[i].type);
-	  	if ("size" in data[i] === false || "weight" in data[i] === false)
-	  		allThingsWithoutWeightOrSize++;
-
-			newCat.ammount++;
 
 			if (catIndex === -1)
 	  		categories.push(newCat);
 		}
-
 	}	
 
 	categories = categories.sort(function(item1, item2) {return item1.name > item2.name});
@@ -77,14 +82,10 @@ var allThingsWithoutWeightOrSize = 0;
   var myTable= "<table><tr><td style='width: 100px; color: red; text-align: center;'>Категория</td>";
   myTable+= "<td style='width: 100px; color: red; text-align: center;'>Процент предметов попадающих в категорию от общего количества</td>";
   myTable+="<td style='width: 100px; color: red; text-align: center;'>Преобладающий тип для данной категории</td>";
-  myTable+="<td style='width: 100px; color: red; text-align: center;'>Средний вес и размер предметов в данной категории</td>";
-  myTable+="<td style='width: 100px; color: red; text-align: center;'>Процент предметов без веса или размера от общего количества данного типа</td>";
-  myTable+="<td style='width: 100px; color: red; text-align: center;'>Процент предметов у которых отсутствуют категрии от общего количества данного типа</td></tr>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Средний вес и размер предметов в данной категории</td></tr>";
 
 
   myTable+="<tr><td style='width: 150px; text-align: center;'>--------------------</td>";
-  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
-  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
   myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
   myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
   myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td></tr>";
@@ -100,17 +101,17 @@ var allThingsWithoutWeightOrSize = 0;
     myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td>";
 
     // Преобладающий тип для данной категории
-    var allTypes = cat.types.reduce(function(container, value){ 
-    	if (container[value] === undefined)
-    		container[value] = 1;
+    var allTypes = {};
+    for (index in cat.types) {
+    	if (cat.types[index] in allTypes)
+    		allTypes[cat.types[index]]++;
     	else
-    		container[value]++;
-    	return container; 
-    }, {});
+    		allTypes[cat.types[index]] = 1;
+    }
 
-    var dominantType = Object.keys(allTypes).reduce(function(maxValue, curTypeKey){
-    	return (allTypes[curTypeKey] > maxValue) ? allTypes[curTypeKey] : maxValue;
-    }, 0);
+    var dominantType = Object.keys(allTypes).reduce(function(maxTypeKey, curTypeKey){
+    	return (allTypes[curTypeKey] > allTypes[maxTypeKey]) ? curTypeKey : maxTypeKey;
+    });
 
     myTable+="<td style='width: 100px; text-align: center;'>" + dominantType + "</td>";
 
@@ -122,19 +123,36 @@ var allThingsWithoutWeightOrSize = 0;
     cat.sizes.reduce(function(sum, value){return sum + value;}) / cat.sizes.length;
     
     myTable+="<td style='width: 100px; text-align: center;'>" + averageWeight.toFixed(3) +", " + averageSize.toFixed(3) + "</td>";
-
-    //Процент предметов без веса или размера от общего количества данного типа
-    var percent = allThingsWithoutWeightOrSize / cat.ammount;
-    myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td>";
-
-    //Процент предметов у которых отсутствуют категрии от общего количества данного типа
-    var percent = allThingsWithoutCategories / cat.ammount;
-    myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td></tr>";
   }  
 
   myTable+="</table>";
+	document.write(myTable);
 
-  document.write( myTable);
+
+  
+  var myTable= "<table><tr><td style='width: 100px; color: red; text-align: center;'>Тип</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Процент предметов без веса или размера от общего количества данного типа</td>";
+  myTable+="<td style='width: 100px; color: red; text-align: center;'>Процент предметов у которых отсутствуют категории от общего количества данного типа</td></tr>";
+
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td>";
+  myTable+="<td     style='width: 150px; text-align: center;'>--------------------</td></tr>";
+
+  for (key in types) {
+	  // Тип
+	  myTable+="<td style='width: 100px; text-align: center;'>" + key + "</td>";
+
+	  // Процент предметов без веса или размера от общего количества данного типа
+	  var percent = allThingsWithoutWeightOrSize / types[key];
+	  myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td>";
+
+	  // Процент предметов у которых отсутствуют категрии от общего количества данного типа
+	  var percent = allThingsWithoutCategories / types[key];
+	  myTable+="<td style='width: 100px; text-align: center;'>" + percent.toFixed(3) + "</td></tr>";
+	}
+
+  myTable+="</table>";
+	document.write(myTable);
 
 }());
 
